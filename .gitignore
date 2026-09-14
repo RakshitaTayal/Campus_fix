@@ -1,0 +1,21 @@
+# Python virtual environments
+venv/
+env/
+ENV/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment and secrets
+.env
+.env.local
+
+# Node & package artifacts
+node_modules/
+dist/
+.DS_Store
+
+# SQLite runtime DB (optional to ignore or commit for demo)
+# campusfix.db

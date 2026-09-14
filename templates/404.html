@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}404 Not Found — CampusFix{% endblock %}
+
+{% block content %}
+<div class="error-container" id="error-404">
+  <div class="error-card">
+    <div class="error-code">404</div>
+    <h1 class="error-title">Page Not Found</h1>
+    <p class="error-text">The page or campus complaint ticket you are looking for does not exist or may have been removed.</p>
+    <div class="error-actions">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+      <a href="{{ url_for('index') }}" class="btn btn-outline">Back to Home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — CampusFix{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" id="admin-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="page-title">Campus Administration Center</h1>
+      <p class="page-subtitle">College-wide complaints overview, staff assignments, and resolution performance statistics.</p>
+    </div>
+    <div class="header-actions">
+      <a href="{{ url_for('admin_complaints') }}" class="btn btn-primary">
+        Manage All Complaints &rarr;
+      </a>
+      <a href="{{ url_for('admin_users') }}" class="btn btn-outline">
+        View Users Directory
+      </a>
+    </div>
+  </div>
+
+  <!-- Complete Statistics Cards -->
+  <div class="admin-stats-grid mb-4" id="admin-stats-overview">
+    <div class="stat-card">
+      <div class="stat-icon bg-blue-light">📊</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Complaints</span>
+        <span class="stat-value font-bold">{{ stats.total }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-sky-light">📥</div>
+      <div class="stat-info">
+        <span class="stat-label">Submitted</span>
+        <span class="stat-value">{{ stats.submitted }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-purple-light">🔍</div>
+      <div class="stat-info">
+        <span class="stat-label">Under Review</span>
+        <span class="stat-value">{{ stats.under_review }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-indigo-light">👤</div>
+      <div class="stat-info">
+        <span class="stat-label">Assigned</span>
+        <span class="stat-value">{{ stats.assigned }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-amber-light">⚙️</div>
+      <div class="stat-info">
+        <span class="stat-label">In Progress</span>
+        <span class="stat-value">{{ stats.in_progress }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-green-light">✓</div>
+      <div class="stat-info">
+        <span class="stat-label">Resolved</span>
+        <span class="stat-value">{{ stats.resolved }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-gray-light">🔒</div>
+      <div class="stat-info">
+        <span class="stat-label">Closed</span>
+        <span class="stat-value">{{ stats.closed }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-red-light">🚨</div>
+      <div class="stat-info">
+        <span class="stat-label">Critical Issues</span>
+        <span class="stat-value text-danger font-bold">{{ stats.critical }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Campus Complaints -->
+  <div class="content-card">
+    <div class="card-header-flex">
+      <div>
+        <h2 class="card-title">Recent Campus Complaints</h2>
+        <p class="card-subtitle">Review incoming tickets and assign staff personnel</p>
+      </div>
+      <a href="{{ url_for('admin_complaints') }}" class="btn btn-sm btn-outline">
+        View & Filter All ({{ stats.total }}) &rarr;
+      </a>
+    </div>
+
+    {% if complaints %}
+      <div class="table-responsive">
+        <table class="data-table" id="table-admin-recent">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Problem Title</th>
+              <th>Student</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Staff Assignment</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in complaints %}
+              <tr class="table-row-hover">
+                <td>
+                  <a href="{{ url_for('complaint_detail', complaint_id=c.complaint_id) }}" class="complaint-code-link">
+                    {{ c.complaint_id }}
+                  </a>
+                </td>
+                <td class="table-cell-title">
+                  <div class="complaint-title-main">{{ c.title }}</div>
+                  <div class="complaint-location-sub">📍 {{ c.location }}</div>
+                </td>
+                <td>
+                  <span class="text-sm font-medium">{{ c.student_name }}</span>
+                </td>
+                <td>
+                  <span class="category-pill">{{ c.category }}</span>
+                </td>
+                <td>
+                  <span class="badge-priority priority-{{ c.priority|lower }}">{{ c.priority }}</span>
+                </td>
+                <td>
+                  <span class="badge-status status-{{ c.status|lower|replace(' ', '-') }}">{{ c.status }}</span>
+                </td>
+                <td>
+                  {% if c.staff_name %}
+                    <span class="staff-assigned-tag">🔧 {{ c.staff_name }}</span>
+                  {% else %}
+                    <!-- Fast Assign Dropdown -->
+                    <form action="{{ url_for('admin_assign_staff', complaint_db_id=c.id) }}" method="POST" class="inline-assign-form">
+                      <input type="hidden" name="complaint_code" value="{{ c.complaint_id }}">
+                      <select name="staff_id" class="form-control form-control-sm select-mini" required>
+                        <option value="" disabled selected>Assign Staff...</option>
+                        {% for st in staff_members %}
+                          <option value="{{ st.id }}">{{ st.name }}</option>
+                        {% endfor %}
+                      </select>
+                      <button type="submit" class="btn btn-xs btn-secondary">Assign</button>
+                    </form>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('complaint_detail', complaint_id=c.complaint_id) }}" class="btn btn-xs btn-outline">
+                    Details
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>No complaints reported yet.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile — CampusFix{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper" id="profile-page">
+  <div class="auth-card profile-card">
+    <div class="profile-header">
+      <div class="profile-avatar">
+        {% if user.role == 'admin' %}🏛️
+        {% elif user.role == 'staff' %}🔧
+        {% else %}🎓{% endif %}
+      </div>
+      <h1 class="auth-title">{{ user.name }}</h1>
+      <span class="role-tag role-{{ user.role }}">{{ user.role|capitalize }}</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="profile-details-list">
+      <div class="profile-field">
+        <span class="profile-field-label">Full Name</span>
+        <span class="profile-field-value">{{ user.name }}</span>
+      </div>
+
+      <div class="profile-field">
+        <span class="profile-field-label">Email Address</span>
+        <span class="profile-field-value">{{ user.email }}</span>
+      </div>
+
+      <div class="profile-field">
+        <span class="profile-field-label">Assigned Role</span>
+        <span class="profile-field-value font-medium">{{ user.role|capitalize }}</span>
+      </div>
+
+      {% if user.department %}
+        <div class="profile-field">
+          <span class="profile-field-label">Department / Major</span>
+          <span class="profile-field-value">{{ user.department }}</span>
+        </div>
+      {% endif %}
+
+      <div class="profile-field">
+        <span class="profile-field-label">Account Created</span>
+        <span class="profile-field-value">{{ user.created_at }}</span>
+      </div>
+    </div>
+
+    <div class="profile-actions mt-4">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-block">
+        &larr; Return to Dashboard
+      </a>
+      <a href="{{ url_for('logout') }}" class="btn btn-danger btn-block mt-2">
+        Sign Out
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

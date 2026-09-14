@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Report a Problem — CampusFix{% endblock %}
+
+{% block content %}
+<div class="form-page-wrapper" id="report-page-container">
+  <div class="form-card" id="report-card">
+    <div class="form-header">
+      <div class="form-header-badge">New Issue Ticket</div>
+      <h1 class="page-title">Report a Campus Problem</h1>
+      <p class="page-subtitle">Submit details about facilities, IT, utilities, or safety issues. Our campus staff will review and dispatch help.</p>
+    </div>
+
+    <form action="{{ url_for('report') }}" method="POST" enctype="multipart/form-data" class="app-form" id="report-problem-form">
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title" class="form-label">Problem Title <span class="required">*</span></label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          class="form-control"
+          placeholder="e.g., Broken overhead projector in Lecture Hall B"
+          value="{{ title or '' }}"
+          required
+          autofocus
+        >
+        <small class="form-hint">Provide a concise, descriptive summary of the issue.</small>
+      </div>
+
+      <!-- Category & Subcategory Row -->
+      <div class="form-row">
+        <div class="form-group col-half">
+          <label for="category" class="form-label">Category <span class="required">*</span></label>
+          <select id="category" name="category" class="form-control" required onchange="updateSubcategories()">
+            <option value="" disabled {% if not category %}selected{% endif %}>-- Select Category --</option>
+            {% for cat in categories_dict.keys() %}
+              <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group col-half">
+          <label for="subcategory" class="form-label">Subcategory <span class="required">*</span></label>
+          <select id="subcategory" name="subcategory" class="form-control" required>
+            <option value="" disabled selected>-- Select Category First --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Location & Priority Row -->
+      <div class="form-row">
+        <div class="form-group col-half">
+          <label for="location" class="form-label">Specific Location <span class="required">*</span></label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            class="form-control"
+            placeholder="e.g., Science Block, Room 204 (Lecture Hall B)"
+            value="{{ location or '' }}"
+            required
+          >
+          <small class="form-hint">Building name, floor, room number, or landmark.</small>
+        </div>
+
+        <div class="form-group col-half">
+          <label for="priority" class="form-label">Urgency / Priority <span class="required">*</span></label>
+          <select id="priority" name="priority" class="form-control" required>
+            <option value="Low" {% if priority == 'Low' %}selected{% endif %}>Low (Minor cosmetic or non-blocking issue)</option>
+            <option value="Medium" {% if priority == 'Medium' or not priority %}selected{% endif %}>Medium (Normal inconvenience, needs attention)</option>
+            <option value="High" {% if priority == 'High' %}selected{% endif %}>High (Disrupts lectures, labs, or work)</option>
+            <option value="Critical" {% if priority == 'Critical' %}selected{% endif %}>Critical (Safety hazard, outage, or emergency)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description" class="form-label">Detailed Description <span class="required">*</span></label>
+        <textarea
+          id="description"
+          name="description"
+          rows="5"
+          class="form-control"
+          placeholder="Please explain the problem clearly: What is broken? When did it start? Any error codes or safety concerns?"
+          required
+        >{{ description or '' }}</textarea>
+      </div>
+
+      <!-- Image Upload -->
+      <div class="form-group">
+        <label for="image" class="form-label">Attach Photo (Optional)</label>
+        <div class="file-upload-box" id="file-upload-container">
+          <input
+            type="file"
+            id="image"
+            name="image"
+            class="file-input"
+            accept=".png, .jpg, .jpeg, .webp"
+            onchange="previewUploadedImage(this)"
+          >
+          <div class="file-upload-prompt">
+            <span class="upload-icon">📷</span>
+            <span class="upload-text">Choose an image or click to browse</span>
+            <span class="upload-subtext">Supported formats: JPG, PNG, WEBP (Max 8MB)</span>
+          </div>
+          <div id="image-preview-container" class="image-preview-area" style="display: none;">
+            <img id="image-preview" src="#" alt="Selected image preview">
+            <button type="button" class="btn btn-xs btn-danger" onclick="removeSelectedImage()">Remove image</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg" id="btn-submit-complaint">
+          Submit Complaint
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-lg">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Dynamic subcategories dictionary passed from Flask
+  const categoriesData = {{ categories_dict|tojson }};
+  const preselectedSubcat = "{{ subcategory or '' }}";
+
+  function updateSubcategories() {
+    const catSelect = document.getElementById('category');
+    const subcatSelect = document.getElementById('subcategory');
+    const selectedCategory = catSelect.value;
+
+    subcatSelect.innerHTML = '';
+
+    if (selectedCategory && categoriesData[selectedCategory]) {
+      const subcats = categoriesData[selectedCategory];
+      const defaultOpt = document.createElement('option');
+      defaultOpt.value = '';
+      defaultOpt.disabled = true;
+      defaultOpt.selected = !preselectedSubcat;
+      defaultOpt.textContent = '-- Select Subcategory --';
+      subcatSelect.appendChild(defaultOpt);
+
+      subcats.forEach(sub => {
+        const opt = document.createElement('option');
+        opt.value = sub;
+        opt.textContent = sub;
+        if (sub === preselectedSubcat) {
+          opt.selected = true;
+        }
+        subcatSelect.appendChild(opt);
+      });
+    } else {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.disabled = true;
+      opt.selected = true;
+      opt.textContent = '-- Select Category First --';
+      subcatSelect.appendChild(opt);
+    }
+  }
+
+  // Preview uploaded image
+  function previewUploadedImage(input) {
+    const previewContainer = document.getElementById('image-preview-container');
+    const previewImg = document.getElementById('image-preview');
+
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewContainer.style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function removeSelectedImage() {
+    const input = document.getElementById('image');
+    const previewContainer = document.getElementById('image-preview-container');
+    const previewImg = document.getElementById('image-preview');
+    input.value = '';
+    previewImg.src = '#';
+    previewContainer.style.display = 'none';
+  }
+
+  // Trigger on initial page load if category is already selected
+  document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('category').value) {
+      updateSubcategories();
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard — CampusFix{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" id="student-dashboard">
+  <!-- Dashboard Top Bar -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="page-title">Welcome back, {{ current_user_name }}! 👋</h1>
+      <p class="page-subtitle">Track your filed issues and submit new campus maintenance requests.</p>
+    </div>
+    <div class="header-actions">
+      <a href="{{ url_for('report') }}" class="btn btn-primary" id="btn-dash-report">
+        + Report a Problem
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="stats-grid" id="student-stats">
+    <div class="stat-card" id="stat-total">
+      <div class="stat-icon bg-blue-light">📋</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Complaints</span>
+        <span class="stat-value">{{ stats.total }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card" id="stat-pending">
+      <div class="stat-icon bg-purple-light">⏳</div>
+      <div class="stat-info">
+        <span class="stat-label">Pending</span>
+        <span class="stat-value">{{ stats.pending }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card" id="stat-progress">
+      <div class="stat-icon bg-amber-light">⚙️</div>
+      <div class="stat-info">
+        <span class="stat-label">In Progress</span>
+        <span class="stat-value">{{ stats.in_progress }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card" id="stat-resolved">
+      <div class="stat-icon bg-green-light">✅</div>
+      <div class="stat-info">
+        <span class="stat-label">Resolved</span>
+        <span class="stat-value">{{ stats.resolved }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Complaints Section -->
+  <div class="content-card" id="recent-complaints-card">
+    <div class="card-header-flex">
+      <div>
+        <h2 class="card-title">Recent Complaints</h2>
+        <p class="card-subtitle">Your latest reported campus problems</p>
+      </div>
+      <a href="{{ url_for('complaints') }}" class="btn btn-sm btn-outline" id="btn-view-all-complaints">
+        View All Complaints &rarr;
+      </a>
+    </div>
+
+    {% if complaints %}
+      <div class="table-responsive">
+        <table class="data-table" id="table-recent-complaints">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Problem Title</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in complaints %}
+              <tr class="table-row-hover">
+                <td>
+                  <a href="{{ url_for('complaint_detail', complaint_id=c.complaint_id) }}" class="complaint-code-link">
+                    {{ c.complaint_id }}
+                  </a>
+                </td>
+                <td class="table-cell-title">
+                  <div class="complaint-title-main">{{ c.title }}</div>
+                  <div class="complaint-location-sub">📍 {{ c.location }}</div>
+                </td>
+                <td>
+                  <span class="category-pill">{{ c.category }}</span>
+                </td>
+                <td>
+                  <span class="badge-priority priority-{{ c.priority|lower }}">{{ c.priority }}</span>
+                </td>
+                <td>
+                  <span class="badge-status status-{{ c.status|lower|replace(' ', '-') }}">{{ c.status }}</span>
+                </td>
+                <td class="table-date">
+                  {{ c.created_at[:10] }}
+                </td>
+                <td>
+                  <a href="{{ url_for('complaint_detail', complaint_id=c.complaint_id) }}" class="btn btn-xs btn-outline">
+                    View Details
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state" id="student-empty-state">
+        <div class="empty-icon">📂</div>
+        <h3>No complaints reported yet</h3>
+        <p>Notice an issue on campus? Report broken projectors, plumbing leaks, Wi-Fi drops, or furniture damage.</p>
+        <a href="{{ url_for('report') }}" class="btn btn-primary mt-3">+ Report Your First Problem</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

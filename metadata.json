@@ -1,0 +1,6 @@
+{
+  "name": "CampusFix",
+  "description": "College problem reporting and resolution platform for students, staff, and administrators built with Python, Flask, and SQLite.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

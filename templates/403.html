@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}403 Access Denied — CampusFix{% endblock %}
+
+{% block content %}
+<div class="error-container" id="error-403">
+  <div class="error-card">
+    <div class="error-code">403</div>
+    <h1 class="error-title">Access Restricted</h1>
+    <p class="error-text">You do not have permission to view or manage this page or complaint record. Access is limited based on role authorization.</p>
+    <div class="error-actions">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Return to Your Dashboard</a>
+      <a href="{{ url_for('logout') }}" class="btn btn-outline">Switch Account</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

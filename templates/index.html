@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}CampusFix — Report it. Track it. Fix it.{% endblock %}
+
+{% block content %}
+<div class="landing-container" id="landing-page">
+  <!-- Hero Section -->
+  <section class="hero-section" id="landing-hero">
+    <div class="hero-badge">Campus Problem Resolution</div>
+    <h1 class="hero-title">Campus<span class="brand-accent">Fix</span></h1>
+    <p class="hero-tagline">Report it. Track it. Fix it.</p>
+    <p class="hero-description">
+      A simple platform for students to report campus problems and track their resolution.
+      Empowers students, maintenance staff, and campus administration to resolve infrastructure,
+      utility, and academic facility issues efficiently.
+    </p>
+
+    <!-- Action Buttons -->
+    <div class="hero-actions" id="hero-action-buttons">
+      <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg" id="btn-hero-login">Login</a>
+      <a href="{{ url_for('register') }}" class="btn btn-outline btn-lg" id="btn-hero-register">Register</a>
+      <a href="{{ url_for('report') }}" class="btn btn-accent btn-lg" id="btn-hero-report">+ Report a Problem</a>
+    </div>
+  </section>
+
+  <!-- Quick Demo Access / Testing Section -->
+  <section class="demo-accounts-card" id="demo-accounts-panel">
+    <div class="demo-header">
+      <span class="demo-icon">🔑</span>
+      <div>
+        <h2 class="demo-title">Ready-to-Use Demo Accounts</h2>
+        <p class="demo-subtitle">Use these pre-seeded accounts to test all user roles instantly (Password for all: <code>password123</code>)</p>
+      </div>
+    </div>
+
+    <div class="demo-grid">
+      <!-- Student Role Card -->
+      <div class="demo-role-card" id="demo-card-student">
+        <div class="role-badge role-student">Student</div>
+        <h3>Alex Johnson</h3>
+        <p class="demo-email">student@campusfix.com</p>
+        <p class="demo-role-desc">Report campus issues, track ticket progress, upload photos, reopen or close resolved complaints.</p>
+        <form action="{{ url_for('login') }}" method="POST">
+          <input type="hidden" name="email" value="student@campusfix.com">
+          <input type="hidden" name="password" value="password123">
+          <button type="submit" class="btn btn-sm btn-secondary w-full" id="btn-quick-student">Sign In as Student &rarr;</button>
+        </form>
+      </div>
+
+      <!-- Staff Role Card -->
+      <div class="demo-role-card" id="demo-card-staff">
+        <div class="role-badge role-staff">Staff Member</div>
+        <h3>John Davis (Facilities)</h3>
+        <p class="demo-email">staff@campusfix.com</p>
+        <p class="demo-role-desc">View assigned maintenance jobs, post progress updates, change statuses, mark tickets resolved.</p>
+        <form action="{{ url_for('login') }}" method="POST">
+          <input type="hidden" name="email" value="staff@campusfix.com">
+          <input type="hidden" name="password" value="password123">
+          <button type="submit" class="btn btn-sm btn-secondary w-full" id="btn-quick-staff">Sign In as Staff &rarr;</button>
+        </form>
+      </div>
+
+      <!-- Admin Role Card -->
+      <div class="demo-role-card" id="demo-card-admin">
+        <div class="role-badge role-admin">Administrator</div>
+        <h3>Dr. Arthur Pendelton</h3>
+        <p class="demo-email">admin@campusfix.com</p>
+        <p class="demo-role-desc">Monitor college-wide statistics, assign complaints to staff, adjust priority, manage students and staff.</p>
+        <form action="{{ url_for('login') }}" method="POST">
+          <input type="hidden" name="email" value="admin@campusfix.com">
+          <input type="hidden" name="password" value="password123">
+          <button type="submit" class="btn btn-sm btn-secondary w-full" id="btn-quick-admin">Sign In as Admin &rarr;</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Flow -->
+  <section class="workflow-section" id="landing-workflow">
+    <h2 class="section-title">How Resolution Works</h2>
+    <div class="workflow-steps">
+      <div class="step-card" id="step-1">
+        <div class="step-num">1</div>
+        <h3>Report the Issue</h3>
+        <p>Students submit problems specifying location, category, urgency priority, and optional photos.</p>
+      </div>
+      <div class="step-arrow">&rarr;</div>
+      <div class="step-card" id="step-2">
+        <div class="step-num">2</div>
+        <h3>Admin Review & Assign</h3>
+        <p>College administrators review incoming complaints and dispatch them to the relevant staff or department.</p>
+      </div>
+      <div class="step-arrow">&rarr;</div>
+      <div class="step-card" id="step-3">
+        <div class="step-num">3</div>
+        <h3>Staff Action & Fix</h3>
+        <p>Maintenance staff investigate, post status updates, and mark the complaint resolved once completed.</p>
+      </div>
+      <div class="step-arrow">&rarr;</div>
+      <div class="step-card" id="step-4">
+        <div class="step-num">4</div>
+        <h3>Student Confirmation</h3>
+        <p>Students receive in-app notifications and can close the ticket or reopen if the fix needs attention.</p>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

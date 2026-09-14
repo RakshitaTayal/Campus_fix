@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Campus Users Directory — CampusFix Admin{% endblock %}
+
+{% block content %}
+<div class="page-wrapper" id="admin-users-page">
+  <div class="page-header-flex">
+    <div>
+      <h1 class="page-title">Campus Users Directory</h1>
+      <p class="page-subtitle">View registered students, maintenance staff, and system administrators.</p>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline">
+      &larr; Admin Overview
+    </a>
+  </div>
+
+  <!-- Staff Members Section -->
+  <div class="content-card mb-4">
+    <div class="card-header-flex">
+      <div>
+        <h2 class="card-title">Staff & Maintenance Personnel</h2>
+        <p class="card-subtitle">Personnel available for resolving campus complaints</p>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Department / Team</th>
+            <th>Member Since</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users if u.role in ['staff', 'admin'] %}
+            <tr>
+              <td class="font-medium">{{ u.name }}</td>
+              <td>{{ u.email }}</td>
+              <td>
+                <span class="role-tag role-{{ u.role }}">{{ u.role|capitalize }}</span>
+              </td>
+              <td>{{ u.department or 'General' }}</td>
+              <td class="table-date">{{ u.created_at[:10] }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Registered Students Section -->
+  <div class="content-card">
+    <div class="card-header-flex">
+      <div>
+        <h2 class="card-title">Registered Students</h2>
+        <p class="card-subtitle">Students eligible to report and track campus issues</p>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Department / Major</th>
+            <th>Registration Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users if u.role == 'student' %}
+            <tr>
+              <td class="font-medium">{{ u.name }}</td>
+              <td>{{ u.email }}</td>
+              <td>
+                <span class="role-tag role-student">Student</span>
+              </td>
+              <td>{{ u.department or 'Undergraduate' }}</td>
+              <td class="table-date">{{ u.created_at[:10] }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

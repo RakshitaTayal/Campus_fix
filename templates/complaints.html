@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}My Complaints — CampusFix{% endblock %}
+
+{% block content %}
+<div class="page-wrapper" id="my-complaints-page">
+  <div class="page-header-flex">
+    <div>
+      <h1 class="page-title">My Complaints</h1>
+      <p class="page-subtitle">Track, filter, and review the status of all campus problems you have submitted.</p>
+    </div>
+    <a href="{{ url_for('report') }}" class="btn btn-primary" id="btn-report-new">
+      + Report New Problem
+    </a>
+  </div>
+
+  <!-- Search & Filter Card -->
+  <div class="filter-card" id="student-filter-card">
+    <form action="{{ url_for('complaints') }}" method="GET" class="filter-form" id="complaints-filter-form">
+      <div class="filter-grid">
+        <!-- Search Input -->
+        <div class="filter-item filter-search">
+          <label for="search" class="filter-label">Search</label>
+          <input
+            type="text"
+            id="search"
+            name="search"
+            class="form-control"
+            placeholder="Complaint ID, title, or location..."
+            value="{{ search or '' }}"
+          >
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-item">
+          <label for="category" class="filter-label">Category</label>
+          <select id="category" name="category" class="form-control">
+            <option value="">All Categories</option>
+            {% for cat in categories_dict.keys() %}
+              <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="filter-item">
+          <label for="status" class="filter-label">Status</label>
+          <select id="status" name="status" class="form-control">
+            <option value="">All Statuses</option>
+            <option value="Submitted" {% if selected_status == 'Submitted' %}selected{% endif %}>Submitted</option>
+            <option value="Under Review" {% if selected_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+            <option value="Assigned" {% if selected_status == 'Assigned' %}selected{% endif %}>Assigned</option>
+            <option value="In Progress" {% if selected_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+            <option value="Resolved" {% if selected_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+            <option value="Closed" {% if selected_status == 'Closed' %}selected{% endif %}>Closed</option>
+            <option value="Reopened" {% if selected_status == 'Reopened' %}selected{% endif %}>Reopened</option>
+          </select>
+        </div>
+
+        <!-- Priority Filter -->
+        <div class="filter-item">
+          <label for="priority" class="filter-label">Priority</label>
+          <select id="priority" name="priority" class="form-control">
+            <option value="">All Priorities</option>
+            <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>Low</option>
+            <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>Medium</option>
+            <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>High</option>
+            <option value="Critical" {% if selected_priority == 'Critical' %}selected{% endif %}>Critical</option>
+          </select>
+        </div>
+
+        <!-- Submit & Reset Buttons -->
+        <div class="filter-item filter-buttons">
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-apply-filters">Apply Filters</button>
+          <a href="{{ url_for('complaints') }}" class="btn btn-outline btn-sm" id="btn-reset-filters">Reset</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Complaints List / Table -->
+  <div class="content-card">
+    <div class="card-header-flex">
+      <h2 class="card-title">Complaints Record ({{ complaints|length }} found)</h2>
+    </div>
+
+    {% if complaints %}
+      <div class="table-responsive">
+        <table class="data-table" id="table-my-complaints">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Problem Title</th>
+              <th>Category & Subcategory</th>
+              <th>Location</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Assigned Staff</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in complaints %}
+              <tr class="table-row-hover">
+                <td>
+                  <a href="{{ url_for('complaint_detail', complaint_id=c.complaint_id) }}" class="complaint-code-link">
+                    {{ c.complaint_id }}
+                  </a>
+                </td>
+                <td class="table-cell-title">
+                  <div class="complaint-title-main">{{ c.title }}</div>
+                </td>
+                <td>
+                  <span class="category-pill">{{ c.category }}</span>
+                  <div class="subcategory-text">{{ c.subcategory }}</div>
+                </td>
+                <td class="table-location">
+                  📍 {{ c.location }}
+                </td>
+                <td>
+                  <span class="badge-priority priority-{{ c.priority|lower }}">{{ c.priority }}</span>
+                </td>
+                <td>
+                  <span class="badge-status status-{{ c.status|lower|replace(' ', '-') }}">{{ c.status }}</span>
+                </td>
+                <td>
+                  {% if c.staff_name %}
+                    <span class="staff-assigned-tag">👤 {{ c.staff_name }}</span>
+                  {% else %}
+                    <span class="text-muted">Unassigned</span>
+                  {% endif %}
+                </td>
+                <td class="table-date">
+                  {{ c.created_at[:10] }}
+                </td>
+                <td>
+                  <a href="{{ url_for('complaint_detail', complaint_id=c.complaint_id) }}" class="btn btn-xs btn-outline">
+                    View &rarr;
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>No matching complaints found</h3>
+        <p>Try adjusting your search terms or clearing the filters above.</p>
+        <a href="{{ url_for('complaints') }}" class="btn btn-outline mt-2">Clear Filters</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

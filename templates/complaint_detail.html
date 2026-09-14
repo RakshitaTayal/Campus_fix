@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}{{ complaint.complaint_id }}: {{ complaint.title }} — CampusFix{% endblock %}
+
+{% block content %}
+<div class="page-wrapper" id="complaint-detail-page">
+  <!-- Back navigation breadcrumb -->
+  <div class="breadcrumb-bar">
+    {% if session.get('user_role') == 'admin' %}
+      <a href="{{ url_for('admin_complaints') }}" class="breadcrumb-link">&larr; Back to All Complaints</a>
+    {% elif session.get('user_role') == 'staff' %}
+      <a href="{{ url_for('staff_dashboard') }}" class="breadcrumb-link">&larr; Back to Assigned Complaints</a>
+    {% else %}
+      <a href="{{ url_for('complaints') }}" class="breadcrumb-link">&larr; Back to My Complaints</a>
+    {% endif %}
+  </div>
+
+  <!-- Complaint Header Card -->
+  <div class="detail-header-card">
+    <div class="detail-header-top">
+      <div class="detail-title-group">
+        <div class="detail-id-badge">{{ complaint.complaint_id }}</div>
+        <h1 class="detail-title">{{ complaint.title }}</h1>
+      </div>
+      <div class="detail-badges-group">
+        <span class="badge-priority priority-{{ complaint.priority|lower }}">Priority: {{ complaint.priority }}</span>
+        <span class="badge-status status-{{ complaint.status|lower|replace(' ', '-') }}">Status: {{ complaint.status }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-layout-grid">
+    <!-- Left Column: Details & Timeline -->
+    <div class="detail-main-col">
+      <!-- Problem Details Card -->
+      <div class="content-card mb-4">
+        <h2 class="card-title mb-3">Issue Information</h2>
+        
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Category:</span>
+            <span class="info-value font-medium">{{ complaint.category }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Subcategory:</span>
+            <span class="info-value">{{ complaint.subcategory }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Specific Location:</span>
+            <span class="info-value font-medium">📍 {{ complaint.location }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Reported By:</span>
+            <span class="info-value">👤 {{ complaint.student_name }} ({{ complaint.student_email }})</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Date Submitted:</span>
+            <span class="info-value">{{ complaint.created_at }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Last Updated:</span>
+            <span class="info-value">{{ complaint.updated_at }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Assigned Staff:</span>
+            <span class="info-value">
+              {% if complaint.staff_name %}
+                <span class="staff-assigned-tag">🔧 {{ complaint.staff_name }} ({{ complaint.staff_department or 'Staff' }})</span>
+              {% else %}
+                <span class="text-warning">⏳ Awaiting Assignment</span>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="description-block">
+          <span class="info-label">Problem Description:</span>
+          <p class="description-text">{{ complaint.description }}</p>
+        </div>
+
+        <!-- Optional Attached Image -->
+        {% if complaint.image_filename %}
+          <div class="divider"></div>
+          <div class="attached-image-box">
+            <span class="info-label">Attached Photo:</span>
+            <div class="image-frame">
+              <a href="{{ url_for('uploaded_file', filename=complaint.image_filename) }}" target="_blank">
+                <img
+                  src="{{ url_for('uploaded_file', filename=complaint.image_filename) }}"
+                  alt="Complaint Photo: {{ complaint.complaint_id }}"
+                  class="complaint-photo"
+                >
+              </a>
+              <small class="text-muted block mt-1">Click image to open full resolution</small>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Lifecycle Progress Tracker -->
+      <div class="content-card mb-4">
+        <h2 class="card-title mb-3">Resolution Progress Lifecycle</h2>
+        <div class="lifecycle-tracker">
+          {% set stages = ['Submitted', 'Under Review', 'Assigned', 'In Progress', 'Resolved'] %}
+          
+          {# Determine index of current status #}
+          {% set current_idx = -1 %}
+          {% if complaint.status == 'Submitted' %}{% set current_idx = 0 %}
+          {% elif complaint.status == 'Under Review' %}{% set current_idx = 1 %}
+          {% elif complaint.status == 'Assigned' %}{% set current_idx = 2 %}
+          {% elif complaint.status == 'In Progress' %}{% set current_idx = 3 %}
+          {% elif complaint.status == 'Resolved' %}{% set current_idx = 4 %}
+          {% elif complaint.status == 'Closed' %}{% set current_idx = 5 %}
+          {% elif complaint.status == 'Reopened' %}{% set current_idx = 3 %}
+          {% endif %}
+
+          <div class="steps-progress-bar">
+            {% for stage in stages %}
+              {% set stage_idx = loop.index0 %}
+              <div class="step-progress-item {% if stage_idx <= current_idx %}step-completed{% endif %} {% if stage == complaint.status %}step-current{% endif %}">
+                <div class="step-dot">
+                  {% if stage_idx < current_idx %}
+                    ✓
+                  {% else %}
+                    {{ loop.index }}
+                  {% endif %}
+                </div>
+                <div class="step-label">{{ stage }}</div>
+              </div>
+              {% if not loop.last %}
+                <div class="step-line {% if stage_idx < current_idx %}step-line-active{% endif %}"></div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          {% if complaint.status == 'Closed' %}
+            <div class="status-callout status-callout-closed mt-3">
+              🔒 <strong>Closed:</strong> This complaint has been confirmed resolved and closed by the student.
+            </div>
+          {% elif complaint.status == 'Reopened' %}
+            <div class="status-callout status-callout-reopened mt-3">
+              ⚠️ <strong>Reopened:</strong> The student requested additional attention on this issue. Staff review is required.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Timeline / Comments / Updates -->
+      <div class="content-card" id="timeline-card">
+        <h2 class="card-title mb-3">Activity Timeline & Updates ({{ comments|length }})</h2>
+        
+        {% if comments %}
+          <div class="timeline-stream">
+            {% for comment in comments %}
+              <div class="timeline-entry entry-{{ comment.author_role }}">
+                <div class="entry-marker">
+                  {% if comment.author_role == 'admin' %}🏛️
+                  {% elif comment.author_role == 'staff' %}🔧
+                  {% else %}👤{% endif %}
+                </div>
+                <div class="entry-bubble">
+                  <div class="entry-header">
+                    <span class="entry-author font-medium">{{ comment.author_name }}</span>
+                    <span class="role-tag role-{{ comment.author_role }}">{{ comment.author_role|capitalize }}</span>
+                    {% if comment.author_department %}
+                      <span class="entry-department">({{ comment.author_department }})</span>
+                    {% endif %}
+                    <span class="entry-time text-muted">{{ comment.created_at }}</span>
+                  </div>
+                  <div class="entry-text">
+                    {{ comment.comment }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted">No timeline comments recorded yet.</p>
+        {% endif %}
+
+        <!-- Add Comment / Update Form -->
+        <div class="add-comment-section mt-4">
+          <h3 class="subsection-title mb-2">Post an Update or Note</h3>
+          <form action="{{ url_for('add_comment', complaint_db_id=complaint.id) }}" method="POST" class="comment-form">
+            <input type="hidden" name="complaint_code" value="{{ complaint.complaint_id }}">
+            <div class="form-group">
+              <textarea
+                name="comment"
+                rows="3"
+                class="form-control"
+                placeholder="Write your comment, inspection note, or question here..."
+                required
+              ></textarea>
+            </div>
+            <button type="submit" class="btn btn-secondary btn-sm" id="btn-submit-comment">
+              Post Update
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Role Actions & Controls -->
+    <div class="detail-sidebar-col">
+      <!-- Student Actions (Close / Reopen) -->
+      {% if session.get('user_role') == 'student' and complaint.student_id == session.get('user_id') %}
+        <div class="content-card mb-4 action-card">
+          <h3 class="card-title mb-2">Student Actions</h3>
+          <p class="text-muted text-sm mb-3">Actions available based on current ticket status:</p>
+
+          {% if complaint.status == 'Resolved' %}
+            <div class="action-buttons-stack">
+              <!-- Close complaint -->
+              <form action="{{ url_for('close_complaint', complaint_db_id=complaint.id) }}" method="POST" onsubmit="return confirm('Confirm that the issue has been resolved to your satisfaction?');">
+                <input type="hidden" name="complaint_code" value="{{ complaint.complaint_id }}">
+                <button type="submit" class="btn btn-success btn-block" id="btn-close-complaint">
+                  ✓ Issue Resolved - Close Complaint
+                </button>
+              </form>
+
+              <!-- Reopen complaint toggle -->
+              <button type="button" class="btn btn-outline btn-block mt-2" onclick="toggleReopenForm()" id="btn-toggle-reopen">
+                ↻ Reopen Complaint
+              </button>
+
+              <div id="reopen-form-container" class="reopen-box mt-3" style="display: none;">
+                <form action="{{ url_for('reopen_complaint', complaint_db_id=complaint.id) }}" method="POST">
+                  <input type="hidden" name="complaint_code" value="{{ complaint.complaint_id }}">
+                  <label for="reopen-reason" class="form-label text-sm">Reason for Reopening: <span class="required">*</span></label>
+                  <textarea
+                    id="reopen-reason"
+                    name="reason"
+                    rows="2"
+                    class="form-control mb-2"
+                    placeholder="e.g., The projector still fails after 10 minutes..."
+                    required
+                  ></textarea>
+                  <button type="submit" class="btn btn-warning btn-sm btn-block">Confirm Reopen Ticket</button>
+                </form>
+              </div>
+            </div>
+          {% elif complaint.status == 'Closed' %}
+            <div class="ticket-status-note note-closed">
+              ✅ This complaint is closed. If a new issue occurs, please report a new problem ticket.
+            </div>
+          {% else %}
+            <div class="ticket-status-note note-pending">
+              ℹ️ Your complaint is currently being processed by campus staff. You will be able to confirm or reopen once marked <strong>Resolved</strong>.
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Staff Actions: Status Update -->
+      {% if session.get('user_role') in ['staff', 'admin'] %}
+        <div class="content-card mb-4 action-card">
+          <h3 class="card-title mb-2">Staff Status Management</h3>
+          <p class="text-muted text-sm mb-3">Update the progress of this maintenance request:</p>
+
+          <form action="{{ url_for('staff_update_status', complaint_db_id=complaint.id) }}" method="POST" class="staff-action-form">
+            <input type="hidden" name="complaint_code" value="{{ complaint.complaint_id }}">
+
+            <div class="form-group mb-2">
+              <label for="staff-status-select" class="form-label text-sm">Change Status To:</label>
+              <select id="staff-status-select" name="status" class="form-control" required>
+                <option value="Under Review" {% if complaint.status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                <option value="In Progress" {% if complaint.status == 'In Progress' %}selected{% endif %}>In Progress (Work Started)</option>
+                <option value="Resolved" {% if complaint.status == 'Resolved' %}selected{% endif %}>Resolved (Issue Fixed)</option>
+              </select>
+            </div>
+
+            <div class="form-group mb-2">
+              <label for="staff-status-comment" class="form-label text-sm">Status Update Note (Optional):</label>
+              <input
+                type="text"
+                id="staff-status-comment"
+                name="comment"
+                class="form-control"
+                placeholder="e.g., Replacement parts installed and tested."
+              >
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-sm" id="btn-staff-update-status">
+              Update Status & Notify Student
+            </button>
+          </form>
+        </div>
+      {% endif %}
+
+      <!-- Admin Actions: Staff Assignment & Priority Override -->
+      {% if session.get('user_role') == 'admin' %}
+        <div class="content-card mb-4 action-card admin-action-border">
+          <div class="admin-badge mb-2">Admin Controls</div>
+          <h3 class="card-title mb-2">Assign Staff Member</h3>
+
+          <form action="{{ url_for('admin_assign_staff', complaint_db_id=complaint.id) }}" method="POST" class="mb-4">
+            <input type="hidden" name="complaint_code" value="{{ complaint.complaint_id }}">
+            <div class="form-group mb-2">
+              <label for="staff_id" class="form-label text-sm">Select Staff Personnel:</label>
+              <select id="staff_id" name="staff_id" class="form-control" required>
+                <option value="" disabled {% if not complaint.assigned_staff_id %}selected{% endif %}>-- Choose Staff --</option>
+                {% for st in staff_list %}
+                  <option value="{{ st.id }}" {% if complaint.assigned_staff_id == st.id %}selected{% endif %}>
+                    {{ st.name }} ({{ st.department or 'General Staff' }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-secondary btn-block btn-sm" id="btn-admin-assign">
+              Assign Staff & Update
+            </button>
+          </form>
+
+          <div class="divider"></div>
+
+          <h3 class="card-title mb-2 mt-3">Adjust Priority</h3>
+          <form action="{{ url_for('admin_update_priority', complaint_db_id=complaint.id) }}" method="POST">
+            <input type="hidden" name="complaint_code" value="{{ complaint.complaint_id }}">
+            <div class="form-group mb-2">
+              <select name="priority" class="form-control" required>
+                {% for p in priority_levels %}
+                  <option value="{{ p }}" {% if complaint.priority == p %}selected{% endif %}>{{ p }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-outline btn-block btn-sm" id="btn-admin-priority">
+              Update Priority
+            </button>
+          </form>
+        </div>
+      {% endif %}
+
+      <!-- Quick Summary Information Card -->
+      <div class="content-card">
+        <h3 class="card-title mb-2 text-sm">Complaint Reference</h3>
+        <p class="text-sm text-muted mb-2"><strong>ID:</strong> {{ complaint.complaint_id }}</p>
+        <p class="text-sm text-muted mb-2"><strong>Location:</strong> {{ complaint.location }}</p>
+        <p class="text-sm text-muted mb-0"><strong>Category:</strong> {{ complaint.category }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function toggleReopenForm() {
+    const formBox = document.getElementById('reopen-form-container');
+    if (formBox.style.display === 'none' || !formBox.style.display) {
+      formBox.style.display = 'block';
+    } else {
+      formBox.style.display = 'none';
+    }
+  }
+</script>
+{% endblock %}

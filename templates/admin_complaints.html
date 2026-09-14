@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}All Complaints — CampusFix Admin{% endblock %}
+
+{% block content %}
+<div class="page-wrapper" id="admin-complaints-page">
+  <div class="page-header-flex">
+    <div>
+      <h1 class="page-title">Campus Complaints Master Directory</h1>
+      <p class="page-subtitle">Search, filter, assign, and track all complaints across campus departments.</p>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline">
+      &larr; Admin Overview
+    </a>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="filter-card">
+    <form action="{{ url_for('admin_complaints') }}" method="GET" class="filter-form">
+      <div class="filter-grid">
+        <div class="filter-item filter-search">
+          <label for="search" class="filter-label">Search</label>
+          <input
+            type="text"
+            id="search"
+            name="search"
+            class="form-control"
+            placeholder="Complaint ID, title, location, student name..."
+            value="{{ search or '' }}"
+          >
+        </div>
+
+        <div class="filter-item">
+          <label for="category" class="filter-label">Category</label>
+          <select id="category" name="category" class="form-control">
+            <option value="">All Categories</option>
+            {% for cat in categories_dict.keys() %}
+              <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="status" class="filter-label">Status</label>
+          <select id="status" name="status" class="form-control">
+            <option value="">All Statuses</option>
+            <option value="Submitted" {% if selected_status == 'Submitted' %}selected{% endif %}>Submitted</option>
+            <option value="Under Review" {% if selected_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+            <option value="Assigned" {% if selected_status == 'Assigned' %}selected{% endif %}>Assigned</option>
+            <option value="In Progress" {% if selected_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+            <option value="Resolved" {% if selected_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+            <option value="Closed" {% if selected_status == 'Closed' %}selected{% endif %}>Closed</option>
+            <option value="Reopened" {% if selected_status == 'Reopened' %}selected{% endif %}>Reopened</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="priority" class="filter-label">Priority</label>
+          <select id="priority" name="priority" class="form-control">
+            <option value="">All Priorities</option>
+            <option value="Low" {% if selected_priority == 'Low' %}selected{% endif %}>Low</option>
+            <option value="Medium" {% if selected_priority == 'Medium' %}selected{% endif %}>Medium</option>
+            <option value="High" {% if selected_priority == 'High' %}selected{% endif %}>High</option>
+            <option value="Critical" {% if selected_priority == 'Critical' %}selected{% endif %}>Critical</option>
+          </select>
+        </div>
+
+        <div class="filter-item filter-buttons">
+          <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+          <a href="{{ url_for('admin_complaints') }}" class="btn btn-outline btn-sm">Reset</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Complaints Table -->
+  <div class="content-card">
+    <div class="card-header-flex">
+      <h2 class="card-title">All Complaints ({{ complaints|length }} records)</h2>
+    </div>
+
+    {% if complaints %}
+      <div class="table-responsive">
+        <table class="data-table" id="table-admin-all-complaints">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Problem Title</th>
+              <th>Student</th>
+              <th>Category</th>
+              <th>Location</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Assigned Staff</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in complaints %}
+              <tr class="table-row-hover">
+                <td>
+                  <a href="{{ url_for('complaint_detail', complaint_id=c.complaint_id) }}" class="complaint-code-link">
+                    {{ c.complaint_id }}
+                  </a>
+                </td>
+                <td class="table-cell-title">
+                  <div class="complaint-title-main">{{ c.title }}</div>
+                </td>
+                <td>
+                  <span class="text-sm">{{ c.student_name }}</span>
+                </td>
+                <td>
+                  <span class="category-pill">{{ c.category }}</span>
+                  <div class="subcategory-text">{{ c.subcategory }}</div>
+                </td>
+                <td class="table-location">
+                  📍 {{ c.location }}
+                </td>
+                <td>
+                  <span class="badge-priority priority-{{ c.priority|lower }}">{{ c.priority }}</span>
+                </td>
+                <td>
+                  <span class="badge-status status-{{ c.status|lower|replace(' ', '-') }}">{{ c.status }}</span>
+                </td>
+                <td>
+                  {% if c.staff_name %}
+                    <span class="staff-assigned-tag">🔧 {{ c.staff_name }}</span>
+                  {% else %}
+                    <!-- Quick assign -->
+                    <form action="{{ url_for('admin_assign_staff', complaint_db_id=c.id) }}" method="POST" class="inline-assign-form">
+                      <input type="hidden" name="complaint_code" value="{{ c.complaint_id }}">
+                      <select name="staff_id" class="form-control form-control-sm select-mini" required>
+                        <option value="" disabled selected>Assign...</option>
+                        {% for st in staff_members %}
+                          <option value="{{ st.id }}">{{ st.name }}</option>
+                        {% endfor %}
+                      </select>
+                      <button type="submit" class="btn btn-xs btn-secondary">Assign</button>
+                    </form>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('complaint_detail', complaint_id=c.complaint_id) }}" class="btn btn-xs btn-outline">
+                    View
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>No complaints match your query</h3>
+        <p>Try resetting the search terms or filters.</p>
+        <a href="{{ url_for('admin_complaints') }}" class="btn btn-outline mt-2">Clear Filters</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
